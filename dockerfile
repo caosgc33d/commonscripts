@@ -10,4 +10,4 @@ USER root
 
 RUN conda install git samtools
 WORKDIR /home/biodocker
-RUN git clone https://github.com/caosgc33d/commonscripts 
+RUN git clone https://github.com/caosgc33d/commonscripts.git 
