@@ -5,22 +5,23 @@
 use strict;
 use warnings;
 (my $usage = <<OUT) =~ s/\t+//g;
-perl generate_fastq_from_rid.pl f_bam s_n f_rid
+perl generate_fastq_from_rid.pl f_bam s_n f_rid dir_out
 OUT
 
-die $usage unless @ARGV == 3;
-my ($f_sorted_bam,$s_n,$f_rid) = @ARGV;
+die $usage unless @ARGV == 4;
+
+my ($f_sorted_bam,$s_n,$f_rid,$dir_out) = @ARGV;
 
 #my $bam_n=(split(/\//,$f_bam))[-1];
-
 #my $f_bam_2=$f_bam; 
 #$f_bam_2=~s/\.bam$//g; 
+
 my %rid=(); 
 
 #my $f_sorted_bam=$f_bam_2.".sorted.bam";
 
-my $f_q1=$s_n.".scdisc.fq1";
-my $f_q2=$s_n.".scdisc.fq2"; 
+my $f_q1=$dir_out."/".$s_n.".scdisc.fq1";
+my $f_q2=$dir_out."/".$s_n.".scdisc.fq2"; 
 
 `rm $f_q1`; 
 `rm $f_q2`; 

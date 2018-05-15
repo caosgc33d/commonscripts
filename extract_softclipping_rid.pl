@@ -3,17 +3,17 @@
 use strict;
 use warnings;
 (my $usage = <<OUT) =~ s/\t+//g;
-perl extract_disc_reads.pl f_in chr pos
+perl extract_disc_reads.pl f_in sn chr pos dir_out
 OUT
 
-die $usage unless @ARGV == 3;
-my ($f_bam,$chr,$pos) = @ARGV;
+die $usage unless @ARGV == 5;
+my ($f_bam,$sn,$chr,$pos,$dir_out) = @ARGV;
 
 #my $f_out=$f_bam.".".$chr."_".$pos.".sam";
 
-my $bam_n=(split(/\//,$f_bam))[-1];
+#my $bam_n=(split(/\//,$f_bam))[-1];
 
-my $f_fa=$bam_n.".".$chr."_".$pos.".softclipping.rid";
+my $f_fa=$dir_out."/".$sn.".".$chr."_".$pos.".softclipping.rid";
 
 my $left_pos=$pos-10;
 my $right_pos=$pos+10;
