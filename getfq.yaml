@@ -1,0 +1,59 @@
+name: getfq
+description: caclulate depth from vcf file
+
+inputParameters:
+- name: id
+- name: chr
+- name: pos
+- name: wxs_bam_file
+  localCopy:
+    disk: datadisk
+    path: input/wxs.bam
+- name: wxs_bai_file
+  localCopy:
+    disk: datadisk
+    path: input/wxs.bam.bai
+- name: disc_bam_file
+  localCopy:
+    disk: datadisk
+    path: input/disc.bam
+- name: disc_bai_file
+  localCopy:
+    disk: datadisk
+    path: input/disc.bam.bai
+
+outputParameters:
+- name: output_path
+  localCopy:
+    disk: datadisk
+    path: output/*
+
+resources:
+  minimumCpuCores: 2
+  minimumRamGb: 13
+  zones:
+  - us-central1-a
+  - us-central1-b
+  - us-central1-c
+  - us-central1-f
+  - us-east1-b
+  - us-east1-c
+  - us-east1-d
+  disks:
+  - name: datadisk
+    type: PERSISTENT_HDD
+    sizeGb: 800
+    mountPoint: /mnt/data
+
+docker:
+  imageName: scao/commonscripts
+  cmd: >
+    mkdir /mnt/data/output &&
+    mkdir /mnt/data/fq_out &&
+	samtools sort -n /mnt/data/input/wxs.bam -T ${id}.sorted -o wxs.sorted.bam &&
+    perl /home/biodocker/commonscripts/extract_softclipping_rid.pl /mnt/data/input/wxs.bam ${id} ${chr} ${pos} /mnt/data/fq_out &&
+	perl /home/biodocker/commonscripts/extract_disc_rid.pl /mnt/data/input/disc.bam ${id} ${chr} ${pos} /mnt/data/fq_out && 
+	cat /mnt/data/fq_out/${id}.${chr}_${pos}.softclipping.rid /mnt/data/fq_out/${id}.${chr}_${pos}.disc.rid > /mnt/data/fq_out/${id}.${chr}_${pos}.rid && 
+	perl /home/biodocker/commonscripts/generate_fastq_from_rid.pl /mnt/data/input/wxs.sorted.bam ${id} /mnt/data/fq_out/${id}.${chr}_${pos}.rid /mnt/data/fq_out && 
+    cp /mnt/data/fq_out/${id}.scdisc.fq1 /mnt/data/output/${id}.${chr}_${pos}.scdisc.fq1 &&
+	cp /mnt/data/fq_out/${id}.scdisc.fq2 /mnt/data/output/${id}.${chr}_${pos}.scdisc.fq2

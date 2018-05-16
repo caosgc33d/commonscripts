@@ -1,0 +1,81 @@
+name: melt_single
+description: Run MELT Single to generate VCF files for each WGS BAM file
+
+inputParameters:
+- name: id
+- name: genome
+  localCopy:
+   disk: datadisk
+   path: input/genome.fa
+- name: genome_index
+  localCopy:
+    disk: datadisk
+    path: input/genome.fa.fai
+- name: wgs_bam_file
+  localCopy:
+    disk: datadisk
+    path: input/wgs.bam
+- name: wgs_bai_file
+  localCopy:
+    disk: datadisk
+    path: input/wgs.bam.bai
+- name: bed_file
+  localCopy:
+    disk: datadisk
+    path: input/genome.bed
+- name: mei_list
+  localCopy:
+    disk: datadisk
+    path: input/mei_list.txt
+- name: alu_zip
+  localCopy:
+    disk: datadisk
+    path: input/ALU_MELT.zip
+- name: line1_zip
+  localCopy:
+    disk: datadisk
+    path: input/LINE1_MELT.zip
+- name: sva_zip
+  localCopy:
+    disk: datadisk
+    path: input/SVA_MELT.zip
+
+outputParameters:
+- name: output_path
+  localCopy:
+    disk: datadisk
+    path: output/*
+
+resources:
+  minimumCpuCores: 2
+  minimumRamGb: 13
+  zones:
+  - us-central1-a
+  - us-central1-b
+  - us-central1-c
+  - us-central1-f
+  - us-east1-b
+  - us-east1-c
+  - us-east1-d
+  disks:
+  - name: datadisk
+    type: PERSISTENT_HDD
+    sizeGb: 800
+    mountPoint: /mnt/data
+
+docker:
+  imageName: wwliao/melt
+  cmd: >
+    mkdir /mnt/data/output &&
+    mkdir /mnt/data/melt_out &&
+    touch /mnt/data/input/wgs.bam.bai &&
+    RL=$(samtools view /mnt/data/input/wgs.bam | awk '{print length($10)}' | head -1000 | sort -run | head -1) &&
+    FLOAT=$(samtools depth /mnt/data/input/wgs.bam | awk '$1 != "NC_007605" {sum+=$3;total++} END {print (sum/total)+0.5}') &&
+    COV=${FLOAT%.*} &&
+    MELT Single -a -b NC_007605 -r ${RL} -c ${COV} -h /mnt/data/input/genome.fa -bamfile /mnt/data/input/wgs.bam -n /mnt/data/input/genome.bed -t /mnt/data/input/mei_list.txt -w /mnt/data/melt_out &&
+    cp /mnt/data/input/wgs.bam.fq /mnt/data/output/${id}.bam.fq &&
+    cp /mnt/data/input/wgs.bam.disc /mnt/data/output/${id}.bam.disc &&
+    cp /mnt/data/input/wgs.bam.disc.bai /mnt/data/output/${id}.bam.disc.bai &&
+    cp /mnt/data/melt_out/ALU.final_comp.vcf /mnt/data/output/${id}.ALU.final_comp.vcf &&
+    cp /mnt/data/melt_out/LINE1.final_comp.vcf /mnt/data/output/${id}.LINE1.final_comp.vcf &&
+    cp /mnt/data/melt_out/SVA.final_comp.vcf /mnt/data/output/${id}.SVA.final_comp.vcf

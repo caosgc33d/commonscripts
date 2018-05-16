@@ -1,0 +1,48 @@
+name: rc
+description: caclulate depth from vcf file
+
+inputParameters:
+- name: id
+- name: wgs_bam_file
+  localCopy:
+    disk: datadisk
+    path: input/wgs.bam
+- name: wgs_bai_file
+  localCopy:
+    disk: datadisk
+    path: input/wgs.bam.bai
+- name: vcf_file
+  localCopy:
+    disk: datadisk
+    path: input/input.vcf
+
+outputParameters:
+- name: output_path
+  localCopy:
+    disk: datadisk
+    path: output/*
+
+resources:
+  minimumCpuCores: 2
+  minimumRamGb: 13
+  zones:
+  - us-central1-a
+  - us-central1-b
+  - us-central1-c
+  - us-central1-f
+  - us-east1-b
+  - us-east1-c
+  - us-east1-d
+  disks:
+  - name: datadisk
+    type: PERSISTENT_HDD
+    sizeGb: 800
+    mountPoint: /mnt/data
+
+docker:
+  imageName: scao/commonscripts
+  cmd: >
+    mkdir /mnt/data/output &&
+    mkdir /mnt/data/rc_out &&
+    perl /home/biodocker/commonscripts/rc_for_vcf.pl /mnt/data/input/input.vcf /mnt/data/input/wgs.bam 5 /mnt/data/rc_out/out.rc &&
+    cp /mnt/data/rc_out/out.rc /mnt/data/output/${id}.LINE1.final_comp.vcf.rc 
